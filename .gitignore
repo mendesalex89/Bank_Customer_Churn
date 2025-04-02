@@ -172,3 +172,7 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+/resumo.txt
+
+/home/alexmendes/Documentos/Churn_DataScience/Bank_Customer_Churn/*
