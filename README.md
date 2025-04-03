@@ -73,6 +73,12 @@ O deploy será realizado no Google Cloud Platform utilizando:
 - Google Cloud Run para hospedagem
 - Monitoramento e logging
 
+
+image.png
+
+image.png
+
+
 ## Autor
 
 [Seu Nome]
