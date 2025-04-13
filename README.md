@@ -1,88 +1,144 @@
-# Bank Customer Churn Prediction
+# 🎯 Bank Customer Churn Prediction Project
 
-Este projeto tem como objetivo desenvolver um modelo de machine learning para prever a probabilidade de churn (cancelamento) de clientes bancários. O modelo será disponibilizado através de uma API REST construída com FastAPI e deployada no Google Cloud.
+## 📊 Project Overview
+This project implements a machine learning solution to predict customer churn for a bank. Using historical customer data, we've built a system that can identify customers at risk of leaving the bank, allowing for proactive retention measures.
 
-## Estrutura do Projeto
+## 🚀 Features
+- **Machine Learning Model**: Random Forest classifier trained on historical customer data
+- **REST API**: FastAPI-based prediction service
+- **Interactive Dashboard**: Streamlit web interface for easy interaction
+- **Cloud Deployment**: Fully deployed on Google Cloud using Kubernetes
+- **Real-time Predictions**: Instant churn probability calculations
+- **Risk Analysis**: Detailed customer risk assessment
+- **Automated Recommendations**: Custom retention strategies based on risk level
 
+## 🛠️ Technologies Used
+- **Machine Learning**: scikit-learn, pandas, numpy
+- **API Development**: FastAPI, pydantic
+- **Frontend**: Streamlit
+- **Containerization**: Docker
+- **Orchestration**: Kubernetes (GKE)
+- **Cloud Platform**: Google Cloud
+- **Monitoring**: Google Cloud Monitoring (planned)
+
+## 📈 Model Performance
+- **Accuracy**: 86.35%
+- **Precision**: 79.39%
+- **ROC AUC**: 0.8520
+- **Cross-validation Score**: 0.8523 ± 0.0066
+
+## 🏗️ Architecture
 ```
-├── notebooks/          # Jupyter notebooks para análise exploratória
-├── src/               # Código fonte do projeto
-│   ├── api/          # Código da API FastAPI
-│   ├── data/         # Scripts de processamento de dados
-│   ├── features/     # Scripts de engenharia de features
-│   ├── models/       # Scripts de treinamento e avaliação de modelos
-│   ├── utils/        # Funções utilitárias
-│   ├── visualization/# Scripts de visualização
-│   └── tests/        # Testes unitários
-├── requirements.txt   # Dependências do projeto
-└── README.md         # Este arquivo
+├── 🐳 Docker Container
+│   └── 🚀 FastAPI Application
+│       └── 🤖 ML Model
+├── ☁️ Google Cloud Platform
+│   ├── 🎮 Kubernetes Cluster
+│   └── 📊 Cloud Monitoring
+└── 📱 Streamlit Dashboard
 ```
 
-## Configuração do Ambiente
+## 💻 How to Use
 
-1. Clone o repositório
-2. Crie um ambiente virtual:
-   ```bash
-   python -m venv .venv
-   source .venv/bin/activate  # Linux/Mac
-   # ou
-   .venv\Scripts\activate     # Windows
-   ```
-3. Instale as dependências:
-   ```bash
-   pip install -r requirements.txt
-   ```
+### Local Development
+1. Clone the repository
+```bash
+git clone [repository-url]
+cd Bank_Customer_Churn
+```
 
-## Dataset
+2. Install dependencies
+```bash
+pip install -r requirements.txt
+```
 
-O dataset contém informações sobre clientes bancários, incluindo:
-- Dados demográficos (idade, país, gênero)
-- Informações bancárias (score de crédito, saldo, produtos)
-- Histórico de relacionamento (tempo como cliente, membro ativo)
-- Variável alvo: churn (0: manteve-se cliente, 1: cancelou)
+3. Run the API locally
+```bash
+python src/run_api.py
+```
 
-## Desenvolvimento
+4. Run Streamlit dashboard
+```bash
+streamlit run src/streamlit_app.py
+```
 
-O projeto está sendo desenvolvido em fases:
-1. Análise exploratória e preparação dos dados
-2. Engenharia de features
-3. Treinamento e otimização de modelos
-4. Desenvolvimento da API
-5. Deploy no Google Cloud
+### 🐳 Docker Deployment
+1. Build the Docker image
+```bash
+docker build -t churn-prediction-api .
+```
 
-## Métricas de Avaliação
+2. Run the container
+```bash
+docker run -d -p 8001:8001 churn-prediction-api
+```
 
-O modelo será avaliado usando:
-- AUC-ROC
-- Precisão
-- Recall
-- F1-Score
+### ☁️ Cloud Deployment
+The application is deployed on Google Cloud Platform using:
+- Kubernetes Engine (GKE) for container orchestration
+- Load Balancer for traffic management
+- Secured API endpoints with authentication (planned)
+- HTTPS encryption (planned)
 
-## API
+Access credentials and endpoints will be provided separately for security reasons.
 
-A API será desenvolvida usando FastAPI e incluirá:
-- Endpoint de predição
-- Documentação automática (Swagger)
-- Validação de dados de entrada
-- Logs e monitoramento
+## 📊 Dashboard Features
+1. **Overview Tab**
+   - Total customer statistics
+   - Churn rate analysis
+   - Credit score distribution
+   - Balance distribution
 
-## Deploy
+2. **Existing Customer Tab**
+   - Customer search by ID
+   - Advanced filtering options
+   - Detailed customer analysis
+   - Churn probability prediction
 
-O deploy será realizado no Google Cloud Platform utilizando:
-- Containerização com Docker
-- Google Cloud Run para hospedagem
-- Monitoramento e logging
+3. **New Customer Tab**
+   - Input form for new customers
+   - Real-time prediction
+   - Risk assessment
+   - Customized recommendations
 
+## 🔍 Monitoring (Planned)
+- Real-time pod health monitoring
+- Resource usage tracking
+- API response time monitoring
+- Custom alerts and notifications
+- Auto-scaling configuration
 
-image.png
+## 📝 Data Analysis
+The model was trained on customer data including:
+- Credit Score
+- Geography
+- Gender
+- Age
+- Tenure
+- Balance
+- Number of Products
+- Credit Card Status
+- Active Member Status
+- Estimated Salary
 
-image.png
+Key findings:
+- 20.37% overall churn rate
+- Higher churn rate for inactive members
+- Correlation between number of products and churn
+- Balance level impacts churn probability
 
+## 🤝 Contributing
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-## Autor
+## 📫 Support
+For support, email [your-email] or open an issue in the repository.
 
-[Seu Nome]
+## 📄 License
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Licença
+## 🙏 Acknowledgments
+- Data source: [source]
+- Special thanks to all contributors
 
-Este projeto está sob a licença MIT.
+---
+Made with ❤️ for better customer retention
