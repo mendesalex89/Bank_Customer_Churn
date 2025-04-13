@@ -11,23 +11,25 @@ logger = logging.getLogger(__name__)
 # Função para fazer predição
 def make_prediction(customer_data):
     try:
-        logger.info(f"Tentando fazer predição com dados: {customer_data}")
-        response = requests.post("http://localhost:8001/predict", json=customer_data)
+        logger.info(f"Attempting to make prediction with data: {customer_data}")
+        # Atualizado para usar o endpoint em produção
+        response = requests.post("http://34.69.103.18/predict", json=customer_data)
         
         if response.status_code == 200:
-            logger.info("Predição realizada com sucesso")
-            return response.json()
+            result = response.json()
+            logger.info(f"Prediction successful: {result}")
+            return result
         else:
-            logger.error(f"Erro na API: Status {response.status_code}, Response: {response.text}")
-            st.error(f"Erro ao fazer predição. Status code: {response.status_code}")
+            logger.error(f"API Error: Status {response.status_code}, Response: {response.text}")
+            st.error(f"Error making prediction. Status code: {response.status_code}")
             return None
     except requests.exceptions.ConnectionError:
-        logger.error("Erro de conexão com a API")
-        st.error("Erro de conexão com a API. Certifique-se que a API está rodando (python src/run_api.py)")
+        logger.error("Connection error with production API")
+        st.error("Connection error with API. Please check your internet connection.")
         return None
     except Exception as e:
-        logger.error(f"Erro inesperado: {str(e)}")
-        st.error(f"Erro inesperado ao fazer predição: {str(e)}")
+        logger.error(f"Unexpected error: {str(e)}")
+        st.error(f"Unexpected error making prediction: {str(e)}")
         return None
 
 # Configuração da página
@@ -50,44 +52,44 @@ def load_customer_data():
         df = pd.read_csv("Bank Customer Churn Prediction.csv")
         return df
     except Exception as e:
-        st.error(f"Erro ao carregar dados dos clientes: {str(e)}")
+        st.error(f"Error loading customer data: {str(e)}")
         return None
 
 df_customers = load_customer_data()
 
 # Tabs para diferentes modos
-tab1, tab2, tab3 = st.tabs(["📊 Visão Geral", "📋 Cliente Existente", "➕ Novo Cliente"])
+tab1, tab2, tab3 = st.tabs(["📊 Overview", "📋 Existing Customer", "➕ New Customer"])
 
 with tab1:
     if df_customers is not None:
-        st.header("Visão Geral dos Clientes")
+        st.header("Customer Overview")
         
         # Métricas gerais
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.metric("Total de Clientes", len(df_customers))
+            st.metric("Total Customers", len(df_customers))
         with col2:
             churn_rate = (df_customers['churn'] == 1).mean() * 100
-            st.metric("Taxa de Churn", f"{churn_rate:.1f}%")
+            st.metric("Churn Rate", f"{churn_rate:.1f}%")
         with col3:
             avg_balance = df_customers['balance'].mean()
-            st.metric("Saldo Médio", f"${avg_balance:,.2f}")
+            st.metric("Average Balance", f"${avg_balance:,.2f}")
         with col4:
             avg_credit_score = df_customers['credit_score'].mean()
-            st.metric("Credit Score Médio", f"{avg_credit_score:.0f}")
+            st.metric("Average Credit Score", f"{avg_credit_score:.0f}")
         
         # Filtros
-        st.subheader("Filtros")
+        st.subheader("Filters")
         col1, col2, col3 = st.columns(3)
         with col1:
-            country_filter = st.multiselect("País", df_customers['country'].unique())
+            country_filter = st.multiselect("Country", df_customers['country'].unique())
         with col2:
             credit_score_range = st.slider("Credit Score", 
                                          int(df_customers['credit_score'].min()),
                                          int(df_customers['credit_score'].max()),
                                          (300, 850))
         with col3:
-            balance_range = st.slider("Saldo", 
+            balance_range = st.slider("Balance", 
                                     float(df_customers['balance'].min()),
                                     float(df_customers['balance'].max()),
                                     (0.0, 250000.0))
@@ -104,73 +106,80 @@ with tab1:
         # Visualizações
         col1, col2 = st.columns(2)
         with col1:
-            st.subheader("Distribuição de Churn por País")
+            st.subheader("Churn Distribution by Country")
             fig = px.bar(filtered_df.groupby('country')['churn'].mean().reset_index(),
                         x='country', y='churn',
-                        title="Taxa de Churn por País",
-                        labels={'churn': 'Taxa de Churn', 'country': 'País'})
+                        title="Churn Rate by Country",
+                        labels={'churn': 'Churn Rate', 'country': 'Country'})
             st.plotly_chart(fig)
             
         with col2:
-            st.subheader("Relação Credit Score vs Churn")
+            st.subheader("Credit Score vs Churn")
             fig = px.box(filtered_df, x='churn', y='credit_score',
-                        title="Credit Score por Status de Churn",
+                        title="Credit Score by Churn Status",
                         labels={'churn': 'Churn', 'credit_score': 'Credit Score'})
             st.plotly_chart(fig)
         
         # Tabela de dados filtrados
-        st.subheader("Dados Filtrados")
+        st.subheader("Filtered Data")
         st.dataframe(filtered_df)
 
 with tab2:
     if df_customers is not None:
-        st.header("Selecionar Cliente Existente")
+        st.header("Select Existing Customer")
         
         # Opções de busca
-        search_method = st.radio("Método de Busca", ["ID do Cliente", "Filtros Avançados"])
+        search_method = st.radio("Search Method", ["Customer ID", "Advanced Filters"])
         
-        if search_method == "ID do Cliente":
-            # Mostrar alguns IDs disponíveis como exemplo
-            st.info("Alguns IDs disponíveis para teste: 15634602, 15647311, 15619304, 15701354")
-            
+        if search_method == "Customer ID":
             # Criar uma lista de todos os IDs disponíveis
             available_ids = df_customers['customer_id'].unique().tolist()
             max_id = int(df_customers['customer_id'].max())
             min_id = int(df_customers['customer_id'].min())
+            
+            # Mostrar informação sobre a quantidade total de clientes
+            total_customers = len(available_ids)
+            st.info(f"Total customers in database: {total_customers}")
+            
+            # Opção para ver todos os IDs
+            if st.checkbox("View all available IDs"):
+                st.write("Complete list of IDs:")
+                cols = st.columns(4)
+                for idx, customer_id in enumerate(sorted(available_ids)):
+                    cols[idx % 4].write(f"• {customer_id}")
             
             # Input do ID com validação
             search_id = st.number_input(
                 "Customer ID",
                 min_value=min_id,
                 max_value=max_id,
-                value=15634602,
-                help="Digite um ID de cliente existente"
+                value=min_id,
+                help=f"Enter any ID between {min_id} and {max_id}"
             )
             
-            # Verificar se o ID existe antes de buscar
             if search_id not in available_ids:
-                st.warning(f"ID {search_id} não existe na base de dados. Por favor, use um dos IDs disponíveis.")
+                st.warning(f"ID {search_id} does not exist in the database. Please use one of the available IDs.")
             
-            search_button = st.button("Buscar Cliente")
+            search_button = st.button("Search Customer")
             
             if search_button:
                 if search_id in available_ids:
                     customer = df_customers[df_customers['customer_id'] == search_id]
-                    st.success(f"Cliente encontrado!")
+                    st.success(f"Customer found!")
                 else:
-                    st.error("Cliente não encontrado. Por favor, use um dos IDs disponíveis.")
-                    customer = pd.DataFrame()  # DataFrame vazio para manter a consistência
+                    st.error("Customer not found. Please use one of the available IDs.")
+                    customer = pd.DataFrame()
         else:
-            # Filtros avançados
+            # Advanced filters
             col1, col2, col3 = st.columns(3)
             with col1:
-                country = st.selectbox("País", df_customers['country'].unique())
+                country = st.selectbox("Country", df_customers['country'].unique())
             with col2:
                 credit_score = st.slider("Credit Score", 300, 850, 619)
             with col3:
-                balance = st.number_input("Saldo Mínimo", 0.0, 250000.0, 0.0)
+                balance = st.number_input("Minimum Balance", 0.0, 250000.0, 0.0)
             
-            search_button = st.button("Buscar Clientes")
+            search_button = st.button("Search Customers")
             
             if search_button:
                 customer = df_customers[
@@ -181,8 +190,8 @@ with tab2:
         
         if 'search_button' in locals() and search_button:
             if not customer.empty:
-                st.success(f"Encontrado(s) {len(customer)} cliente(s)!")
-                st.write("Dados do(s) Cliente(s):")
+                st.success(f"Found {len(customer)} customer(s)!")
+                st.write("Customer(s) Data:")
                 st.dataframe(customer)
                 
                 # Se for apenas um cliente, mostrar análise detalhada
@@ -234,10 +243,10 @@ with tab2:
                                 st.markdown("• Consider upselling opportunities")
                                 st.markdown("• Maintain regular engagement")
             else:
-                st.warning("Nenhum cliente encontrado com os critérios especificados.")
+                st.warning("No customer found with the specified criteria.")
 
 with tab3:
-    st.header("Novo Cliente")
+    st.header("New Customer")
     # Formulário de entrada para novo cliente
     with st.form("prediction_form"):
         credit_score = st.slider("Credit Score", 300, 850, 619)
@@ -326,14 +335,19 @@ with tab3:
 st.markdown("---")
 st.markdown("""
 ### How to use this dashboard:
-1. Choose between existing customer or new customer
+1. Choose between existing customer or new customer analysis
 2. For existing customers:
-   - Enter Customer ID
+   - Enter Customer ID or use Advanced Filters
    - Click 'Search Customer'
    - Review customer data and prediction
 3. For new customers:
-   - Fill in customer information
+   - Fill in all customer information
    - Click 'Predict Churn Probability'
-4. Review the prediction and recommendations
-5. Take appropriate action based on insights
+4. Review the prediction results and recommendations
+5. Take appropriate action based on risk level
+
+### Risk Levels:
+- High Risk (>70%): Immediate action required
+- Medium Risk (30-70%): Monitor closely
+- Low Risk (<30%): Regular engagement
 """) 
