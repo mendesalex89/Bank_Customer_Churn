@@ -1,11 +1,16 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from .schemas.customer import CustomerBase, CustomerResponse
 from .services.prediction import ChurnPredictor
 import logging
+import time
+from ..monitoring import setup_monitoring
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Inicializar o monitoramento
+metrics = setup_monitoring("churn-prediction-api")
 
 app = FastAPI(
     title="Bank Customer Churn Prediction API",
@@ -16,15 +21,47 @@ app = FastAPI(
 # Inicializa o predictor
 predictor = ChurnPredictor()
 
+@app.middleware("http")
+async def add_metrics(request: Request, call_next):
+    """Middleware para coletar métricas de todas as requisições."""
+    start_time = time.time()
+    
+    try:
+        # Incrementa o contador de requisições
+        metrics["request_counter"].add(1)
+        
+        # Processa a requisição
+        response = await call_next(request)
+        
+        # Registra a latência
+        latency = (time.time() - start_time) * 1000  # Converte para milissegundos
+        metrics["latency_histogram"].record(latency)
+        
+        return response
+        
+    except Exception as e:
+        # Incrementa o contador de erros
+        metrics["error_counter"].add(1)
+        raise e
+
 @app.post("/predict", response_model=CustomerResponse)
 async def predict_churn(customer: CustomerBase):
     try:
+        start_time = time.time()
+        
         # Converte o modelo Pydantic para dicionário
         customer_data = customer.dict()
         logger.info(f"Recebida requisição para cliente: {customer_data}")
         
         # Faz a predição
         churn_probability, is_likely_to_churn = predictor.predict(customer_data)
+        
+        # Registra a probabilidade de churn no histograma
+        metrics["prediction_histogram"].record(float(churn_probability))
+        
+        # Registra a latência da predição
+        latency = (time.time() - start_time) * 1000  # Converte para milissegundos
+        metrics["latency_histogram"].record(latency)
         
         # Retorna a resposta
         return CustomerResponse(
@@ -33,6 +70,7 @@ async def predict_churn(customer: CustomerBase):
         )
     except Exception as e:
         logger.error(f"Erro ao processar requisição: {str(e)}")
+        metrics["error_counter"].add(1)
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/test-profiles")
@@ -99,10 +137,21 @@ async def test_different_profiles():
     
     return results
 
+@app.get("/metrics")
+async def get_metrics():
+    """Retorna métricas básicas da API"""
+    return {
+        "status": "healthy",
+        "total_requests": metrics["request_counter"].get_value(),
+        "total_errors": metrics["error_counter"].get_value(),
+        "average_latency": metrics["latency_histogram"].get_average()
+    }
+
 @app.get("/")
 async def root():
     return {
         "message": "Bank Customer Churn Prediction API",
         "docs": "/docs",
-        "health": "OK"
+        "health": "OK",
+        "metrics": "/metrics"
     } 

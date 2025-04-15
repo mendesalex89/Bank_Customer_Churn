@@ -3,32 +3,72 @@ import requests
 import pandas as pd
 import plotly.express as px
 import logging
+import time
+from datetime import datetime
 
-# Configurar logging
-logging.basicConfig(level=logging.INFO)
+# Configurar logging com mais detalhes
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('logs/predictions.log'),
+        logging.StreamHandler()
+    ]
+)
 logger = logging.getLogger(__name__)
+
+# URLs da API (produção e local)
+API_URLS = {
+    'local': 'http://localhost:8000',
+    'prod': 'http://34.69.103.18'
+}
 
 # Função para fazer predição
 def make_prediction(customer_data):
     try:
-        logger.info(f"Attempting to make prediction with data: {customer_data}")
-        # Atualizado para usar o endpoint em produção
-        response = requests.post("http://34.69.103.18/predict", json=customer_data)
+        start_time = time.time()
+        request_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        logger.info(f"Request {request_id} - Starting prediction for customer data: {customer_data}")
+        
+        # Tentar primeiro a API local
+        try:
+            response = requests.post(f"{API_URLS['local']}/predict", json=customer_data, timeout=5)
+            api_used = 'local'
+        except requests.exceptions.ConnectionError:
+            logger.warning(f"Request {request_id} - Local API não disponível, tentando API em produção")
+            response = requests.post(f"{API_URLS['prod']}/predict", json=customer_data, timeout=5)
+            api_used = 'prod'
+        
+        response_time = time.time() - start_time
         
         if response.status_code == 200:
             result = response.json()
-            logger.info(f"Prediction successful: {result}")
+            logger.info(
+                f"Request {request_id} - Prediction successful using {api_used} API: {result} - "
+                f"Response time: {response_time:.2f}s - "
+                f"Customer risk level: {'High' if result['churn_probability'] > 0.7 else 'Medium' if result['churn_probability'] > 0.3 else 'Low'}"
+            )
             return result
         else:
-            logger.error(f"API Error: Status {response.status_code}, Response: {response.text}")
+            logger.error(
+                f"Request {request_id} - API Error ({api_used}): Status {response.status_code}, "
+                f"Response: {response.text} - Response time: {response_time:.2f}s"
+            )
             st.error(f"Error making prediction. Status code: {response.status_code}")
             return None
     except requests.exceptions.ConnectionError:
-        logger.error("Connection error with production API")
-        st.error("Connection error with API. Please check your internet connection.")
+        logger.error(
+            f"Request {request_id} - Connection error with both APIs - "
+            f"Time elapsed: {time.time() - start_time:.2f}s"
+        )
+        st.error("Connection error with API. Please check if the local API is running.")
         return None
     except Exception as e:
-        logger.error(f"Unexpected error: {str(e)}")
+        logger.error(
+            f"Request {request_id} - Unexpected error: {str(e)} - "
+            f"Time elapsed: {time.time() - start_time:.2f}s"
+        )
         st.error(f"Unexpected error making prediction: {str(e)}")
         return None
 

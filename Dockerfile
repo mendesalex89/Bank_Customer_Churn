@@ -1,27 +1,25 @@
-# Use Python 3.10 slim image as base
-FROM python:3.10-slim
+# Use a imagem base do Python
+FROM python:3.12-slim
 
-# Set working directory in container
+# Define o diretório de trabalho
 WORKDIR /app
 
-# Copy requirements file
+# Copia os arquivos necessários
 COPY requirements.txt .
+COPY src/ src/
+COPY models/ models/
+COPY data/ data/
 
-# Install dependencies
+# Instala as dependências
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the model files
-COPY models/ ./models/
+# Expõe as portas necessárias
+EXPOSE 8000
+EXPOSE 8501
 
-# Copy the source code
-COPY src/ ./src/
+# Cria um script para iniciar ambos os serviços
+COPY start.sh .
+RUN chmod +x start.sh
 
-# Set environment variables
-ENV PYTHONPATH=/app
-ENV PORT=8001
-
-# Expose the port the app runs on
-EXPOSE 8001
-
-# Command to run the API
-CMD ["python", "src/run_api.py"] 
+# Define o comando para iniciar os serviços
+CMD ["./start.sh"] 

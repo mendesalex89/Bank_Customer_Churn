@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: churn-prediction-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: churn-prediction-api
+  template:
+    metadata:
+      labels:
+        app: churn-prediction-api
+    spec:
+      containers:
+      - name: churn-prediction-api
+        image: gcr.io/bankchurnpredict/churn-prediction-api:latest
+        resources:
+          requests:
+            cpu: "15m"     # Reduzido para 15m com base no uso real
+            memory: "180Mi"  # Ajustado com base no uso real + margem
+          limits:
+            cpu: "100m"     # Limite reduzido mas ainda com folga
+            memory: "250Mi"  # Limite reduzido mas ainda com folga
+        ports:
+        - containerPort: 8000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: churn-prediction-streamlit
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: churn-prediction-streamlit
+  template:
+    metadata:
+      labels:
+        app: churn-prediction-streamlit
+    spec:
+      containers:
+      - name: churn-prediction-streamlit
+        image: gcr.io/bankchurnpredict/churn-prediction-streamlit:latest
+        resources:
+          requests:
+            cpu: "5m"      # Reduzido para 5m com base no uso real
+            memory: "160Mi"  # Ajustado com base no uso real + margem
+          limits:
+            cpu: "50m"      # Limite reduzido mas ainda com folga
+            memory: "200Mi"  # Limite reduzido mas ainda com folga
+        ports:
+        - containerPort: 8501 

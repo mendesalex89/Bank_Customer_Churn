@@ -17,8 +17,8 @@ plotly==5.18.0
 ipywidgets>=7.0.0
 
 # Web/API environment
-fastapi==0.104.1
-uvicorn==0.24.0
+fastapi==0.68.0
+uvicorn==0.15.0
 python-dotenv==1.0.1
 python-multipart==0.0.6
 pydantic==2.4.2
@@ -40,4 +40,10 @@ setuptools>=65.5.1
 ydata-profiling==4.6.4
 
 # Added from the code block
-streamlit==1.31.1
+streamlit==1.24.0
+
+# Added from the code block
+opentelemetry-api==1.11.1
+opentelemetry-sdk==1.11.1
+opentelemetry-exporter-cloud-monitoring==1.11.1
+google-cloud-monitoring==2.9.1

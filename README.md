@@ -42,15 +42,15 @@ This project implements a machine learning solution to predict customer churn fo
 
 ### Local Development
 1. Clone the repository
-```bash
+   ```bash
 git clone [repository-url]
 cd Bank_Customer_Churn
 ```
 
 2. Install dependencies
-```bash
-pip install -r requirements.txt
-```
+   ```bash
+   pip install -r requirements.txt
+   ```
 
 3. Run the API locally
 ```bash
