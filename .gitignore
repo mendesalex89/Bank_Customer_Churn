@@ -178,3 +178,6 @@ cython_debug/
 /resumo.txt
 
 /home/alexmendes/Documentos/Churn_DataScience/Bank_Customer_Churn/*
+
+# Ignorar o ambiente virtual
+env_new/
